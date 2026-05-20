@@ -1,0 +1,46 @@
+# =============================================================================
+# Caddyfile.example — reference for what /etc/caddy/Caddyfile should look like
+# after bootstrap. The bootstrap script creates this for you; this copy lives
+# in the repo so you can review/edit it locally and `scp` updates to the droplet.
+# =============================================================================
+
+{
+    email REPLACE_WITH_YOUR_EMAIL
+}
+
+# Wildcard cert covers every *.storefronts.studio subdomain.
+# Caddy renews automatically via Cloudflare DNS-01.
+*.storefronts.studio {
+    tls {
+        dns cloudflare {env.CF_API_TOKEN}
+    }
+
+    # ── Customer sites ──
+    # Add one @slug + handle block per site. The port is whatever you assigned
+    # via PM2 (start at 4001, increment by 1 per site).
+
+    @ngr host ngr.storefronts.studio
+    handle @ngr {
+        reverse_proxy localhost:4001
+    }
+
+    @pete host pete.storefronts.studio
+    handle @pete {
+        reverse_proxy localhost:4002
+    }
+
+    @mtc host madethecut.storefronts.studio
+    handle @mtc {
+        reverse_proxy localhost:4003
+    }
+
+    # Catch-all for hostnames that match the wildcard cert but no @slug above
+    handle {
+        respond "storefronts.studio — no site configured at this host yet" 404
+    }
+}
+
+# Apex — landing page or redirect to your portfolio site
+storefronts.studio {
+    respond "storefronts.studio — pitches.live" 200
+}

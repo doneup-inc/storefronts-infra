@@ -1,6 +1,6 @@
 # storefronts-infra
 
-DigitalOcean droplet infra for `storefronts.studio` — the pitch-stage hosting surface for spec sites built with [storefront-starter](https://github.com/doneup-inc/storefront-starter) on leads from [storefront-leads](https://github.com/doneup-inc/storefront-leads).
+DigitalOcean droplet infra for `storefronts.studio` — the pitch-stage hosting surface for spec sites built with [storefronts-starter](https://github.com/doneup-inc/storefronts-starter) on leads from [storefronts-leads](https://github.com/doneup-inc/storefronts-leads), with the customer claim flow handled by [storefronts-claim](https://github.com/doneup-inc/storefronts-claim).
 
 One droplet hosts every customer site as a subdomain (`{slug}.storefronts.studio`). Caddy handles wildcard SSL automatically via Cloudflare DNS-01.
 
@@ -20,18 +20,26 @@ One droplet hosts every customer site as a subdomain (`{slug}.storefronts.studio
    │  DO Droplet — Ubuntu 24.04 · $12/mo Basic 2GB · NYC    │
    │                                                        │
    │   Caddy (443, wildcard SSL)                            │
+   │     storefronts.studio           → static              │
    │     ngr.storefronts.studio       → :4001               │
-   │     pete.storefronts.studio      → :4002               │
+   │     petes.storefronts.studio     → :4002               │
    │     madethecut.storefronts.studio → :4003              │
+   │     claim.storefronts.studio     → :4100               │
+   │     doneup.us                    → static              │
    │                                                        │
    │   PM2                                                  │
-   │     ngr-ssr     :4001  ← node dist/.../server.mjs      │
-   │     pete-ssr    :4002                                  │
-   │     mtc-ssr     :4003                                  │
+   │     ngr-ssr        :4001  ← Angular SSR (spec site)   │
+   │     petes-ssr      :4002  ← Angular SSR (spec site)   │
+   │     madethecut-ssr :4003  ← Angular SSR (spec site)   │
+   │     claim-svc      :4100  ← Express claim API          │
    │                                                        │
    │   /var/www/sites/    ← git clones live here            │
    │   /opt/storefronts/  ← infra scripts                   │
    └────────────────────────────────────────────────────────┘
+
+   Edge:
+     Cloudflare Worker: storefronts-claim-notify
+       → Resend API → claims@storefronts.studio outbound
 ```
 
 ---
